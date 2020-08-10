@@ -1,6 +1,10 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProfileCamera extends StatefulWidget {
   @override
@@ -39,6 +43,7 @@ class _ProfileCameraState extends State<ProfileCamera> {
     _cameraController = CameraController(
         cameras[nowCameraIndex], ResolutionPreset.max,
         enableAudio: false);
+
     await _cameraController.initialize();
   }
 
@@ -51,19 +56,15 @@ class _ProfileCameraState extends State<ProfileCamera> {
             _cameraController.value.isInitialized) {
           return Column(
             children: <Widget>[
-              Container(
-                width: Get.width,
-                height: Get.width,
+              AspectRatio(
+                aspectRatio: 1,
                 child: ClipRect(
-                  child: OverflowBox(
-                    alignment: Alignment.center,
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: Container(
-                        width: Get.width,
-                        height: Get.width / _cameraController.value.aspectRatio,
-                        child: CameraPreview(
-                            _cameraController), // this is my CameraPreview
+                  child: Transform.scale(
+                    scale: 1 / _cameraController.value.aspectRatio,
+                    child: Center(
+                      child: AspectRatio(
+                        aspectRatio: _cameraController.value.aspectRatio,
+                        child: CameraPreview(_cameraController),
                       ),
                     ),
                   ),
@@ -71,7 +72,9 @@ class _ProfileCameraState extends State<ProfileCamera> {
               ),
               Expanded(
                 child: GestureDetector(
-                  onTap: () async {},
+                  onTap: () async {
+                    await takePicture(context);
+                  },
                   child: Container(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -117,8 +120,9 @@ class _ProfileCameraState extends State<ProfileCamera> {
       nowCameraIndex = backCameraIndex;
     }
 
-    _cameraController =
-        CameraController(cameras[nowCameraIndex], ResolutionPreset.max);
+    _cameraController = CameraController(
+        cameras[nowCameraIndex], ResolutionPreset.max,
+        enableAudio: false);
     // If the controller is updated then update the UI.
     _cameraController.addListener(() {
       if (mounted) setState(() {});
@@ -134,5 +138,66 @@ class _ProfileCameraState extends State<ProfileCamera> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  takePicture(context) async {
+    try {
+      await _initalizeControllerFuture;
+      final path = await createPath();
+      await _cameraController.takePicture(path);
+      final File croppedFile = await crop(path);
+      final resizedFile = await FlutterNativeImage.compressImage(
+          croppedFile.path,
+          quality: 100,
+          targetHeight: 250,
+          targetWidth: 250);
+      await showImage(context, resizedFile);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  createPath() async {
+    return join((await getTemporaryDirectory()).path, '${DateTime.now()}.png');
+  }
+
+  Future<File> crop(String filePath) async {
+    var imageProperties = await FlutterNativeImage.getImageProperties(filePath);
+
+    var cropSize = min(imageProperties.width, imageProperties.height);
+    print(cropSize);
+    int offsetX = (imageProperties.width - cropSize) ~/ 2;
+    int offsetY = (imageProperties.height - cropSize) ~/ 2;
+
+    return await FlutterNativeImage.cropImage(
+        filePath, offsetX, offsetY, cropSize, cropSize);
+  }
+
+  Future<Null> showImage(BuildContext context, File file) async {
+    new FileImage(file)
+        .resolve(new ImageConfiguration())
+        .addListener(ImageStreamListener((ImageInfo info, bool _) {
+      print('-------------------------------------------$info');
+    }));
+    return showDialog<Null>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text(
+                'Current screenshot：',
+                style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w300,
+                    color: Theme.of(context).primaryColor,
+                    letterSpacing: 1.1),
+              ),
+              content: SizedBox(
+                width: 250,
+                height: 250,
+                child: Image.file(
+                  file,
+                ),
+              ));
+        });
   }
 }

@@ -23,7 +23,12 @@ environment:
 dependencies:
   get: ^3.4.2
   camera: ^0.5.8+2
+  image_cropper: ^1.2.3
+  simple_image_crop: ^0.1.3
   permission_handler: ^5.0.1+1
+  flutter_native_image: ^0.0.5+2
+  path_provider: ^1.6.11
+  path: ^1.6.0
   flutter:
     sdk: flutter
 

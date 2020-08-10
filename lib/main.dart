@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:instagramimagepicker/image_picker_page.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   runApp(MyApp());
@@ -54,11 +53,11 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
           child: FlatButton(
               onPressed: () async {
-//                await _checkPermission();
-                //await _requestPermission();
                 return Get.to(ImagePickerPage());
               },
               child: Container(
+                height: 100,
+                width: 100,
                 child: Text("사진 고르기"),
                 color: Colors.blue,
               ))),

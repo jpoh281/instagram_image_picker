@@ -1,99 +1,142 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+
 import 'package:get/get.dart';
-import 'package:instagramimagepicker/model/gallery_image.dart';
+import 'package:instagramimagepicker/controller/gallery_controller.dart';
+import 'package:simple_image_crop/simple_image_crop.dart';
 
-class ProfileGallery extends StatefulWidget {
-  @override
-  _ProfileGalleryState createState() => _ProfileGalleryState();
-}
-
-class _ProfileGalleryState extends State<ProfileGallery> {
-  final _channel = MethodChannel("/gallery");
-  Future<int> number;
-  int _numberOfItems;
-  var _itemCache = Map<int, GalleryImage>();
-  int _nowIndex = 0;
-  String _nowFilePath;
-  Future<String> nowImage;
-
-  //스크롤 컨트롤러
-  final _scrollController = ScrollController(
-    keepScrollOffset: true,
-  );
-
-  GlobalKey _globalKey = new GlobalKey();
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    number = _channel.invokeMethod<int>("getItemCount");
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    _scrollController.dispose();
-    super.dispose();
-  }
-
+class ProfileGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("갤러리"),
-        actions: [FlatButton(onPressed: () {}, child: Text("선택"))],
+        actions: <Widget>[
+          FlatButton(
+              onPressed: () async {
+                final crop = GalleryController.to.cropKey.currentState;
+
+                final croppedFile = await crop.cropCompleted(
+                    File(GalleryController.to.indexFilePath),
+                    pictureQuality: 1080);
+
+                final resizedFile = await FlutterNativeImage.compressImage(
+                    croppedFile.path,
+                    quality: 100,
+                    targetHeight: 250,
+                    targetWidth: 250);
+
+                showImage(context, resizedFile);
+              },
+              child: Text("선택"))
+        ],
       ),
-      body: FutureBuilder(
-        future: number,
+      body: GetBuilder<GalleryController>(
+          init: GalleryController(),
+          builder: (_) {
+            return FutureBuilder(
+                future: _.getMaxIndex(),
+                builder: (context, snapshot) {
+                  _.maxIndex = snapshot.data;
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: <Widget>[
+                        PictureCrop(),
+                        Expanded(child: ThumbnailLists()),
+                      ],
+                    );
+                  }
+                  return Container();
+                });
+          }),
+    );
+  }
+
+  Future<Null> showImage(BuildContext context, File file) async {
+    new FileImage(file)
+        .resolve(new ImageConfiguration())
+        .addListener(ImageStreamListener((ImageInfo info, bool _) {
+      print('-------------------------------------------$info');
+    }));
+    return showDialog<Null>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text(
+                'Current screenshot：',
+                style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w300,
+                    color: Theme.of(context).primaryColor,
+                    letterSpacing: 1.1),
+              ),
+              content: SizedBox(
+                width: 250,
+                height: 250,
+                child: Image.file(
+                  file,
+                ),
+              ));
+        });
+  }
+}
+
+class PictureCrop extends StatelessWidget {
+  final cropKey = GlobalKey<ImgCropState>();
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: Get.width,
+      height: Get.width,
+      child: FutureBuilder(
+        future: GalleryController.to.getBigItem(GalleryController.to.index),
         builder: (context, snapshot) {
-          _numberOfItems = snapshot.data;
-          if (snapshot.hasData) {
-            return Column(
-              children: <Widget>[
-                SizedBox(
-                    width: Get.width,
-                    height: Get.width,
-                    child: FutureBuilder(
-                        future: nowImage = _getBigItem(_nowIndex),
-                        builder: (context, snapshot) {
-                          print(snapshot.data);
-                          if (snapshot.hasData)
-                            return Image.file(
-                              File(snapshot.data),
-                              fit: BoxFit.cover,
-                            );
-                          return Center(child: CircularProgressIndicator());
-                        })),
-                Expanded(
-                    child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4),
-                        itemCount: _numberOfItems,
-                        itemBuilder: (context, index) {
-                          return _buildItem(index);
-                        }))
-              ],
+          if (snapshot.connectionState == ConnectionState.done) {
+            GalleryController.to.indexFilePath = snapshot.data;
+            return ImgCrop.file(
+              File(snapshot.data),
+              key: GalleryController.to.cropKey,
+              scale: 1.0,
+              maximumScale: 1.0,
+              chipShape: 'rect',
+              chipRadius: Get.width / 2 - 10,
             );
           }
-          return Center(child: Center(child: CircularProgressIndicator()));
+          return Center(child: CircularProgressIndicator());
         },
       ),
     );
   }
+}
+
+class ThumbnailLists extends StatelessWidget {
+  const ThumbnailLists({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+        gridDelegate:
+            SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
+        itemCount: GalleryController.to.maxIndex,
+        itemBuilder: (context, index) {
+          return _buildItem(index);
+        });
+  }
 
   _buildItem(int index) => GestureDetector(
       onTap: () {
-        setState(() {
-          _nowIndex = index;
-          _nowFilePath = _itemCache[_nowIndex].path;
-        });
+        if (!(GalleryController.to.index == index) &&
+            !GalleryController.to.loading) {
+          GalleryController.to.index = index;
+          GalleryController.to.update();
+        }
       },
       child: FutureBuilder(
-          future: _getItem(index),
+          future: GalleryController.to.getItem(index),
           builder: (context, snapshot) {
             var item = snapshot?.data;
             if (item != null) {
@@ -110,39 +153,4 @@ class _ProfileGalleryState extends State<ProfileGallery> {
 
             return Container();
           }));
-  Future<String> _getBigItem(int index) async {
-    var url =
-        await _channel.invokeMethod("getThumbnail", _numberOfItems - (index));
-    print(url);
-    return url;
-  }
-
-  Future<GalleryImage> _getItem(int index) async {
-    // TODO: fetch gallery content here
-    // 1
-    if (_itemCache[index] != null) {
-      return _itemCache[index];
-    } else {
-      // 2
-      var channelResponse = await _channel.invokeMethod(
-          "getMiniThumbnail", _numberOfItems - (1 + index));
-
-      // 3
-      var item = Map<String, dynamic>.from(channelResponse);
-
-      // 4
-      var galleryImage = GalleryImage(
-          bytes: item['data'],
-          id: item['id'],
-          dateCreated: item['created'],
-          location: item['location'],
-          path: item['path']);
-
-      // 5
-      _itemCache[index] = galleryImage;
-
-      // 6
-      return galleryImage;
-    }
-  }
 }
