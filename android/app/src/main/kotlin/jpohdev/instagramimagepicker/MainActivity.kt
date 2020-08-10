@@ -36,13 +36,13 @@ class MainActivity: FlutterActivity() {
 
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-        val permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), permissionCode)
-        } else {
-            checkGallery()
-        }
+//        val permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+//
+//        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), permissionCode)
+//        } else {
+//            checkGallery()
+//        }
 
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "/gallery").setMethodCallHandler { call, result ->
@@ -76,12 +76,12 @@ class MainActivity: FlutterActivity() {
         }
     }
 
-    private fun checkGallery() {
-        println("number of items ${getGalleryImageCount()}")
-        dataForMiniThumbnail(0) { data, id, created, location, path ->
-            println("first item $data $id $created $location")
-        }
-    }
+//    private fun checkGallery() {
+//        println("number of items ${getGalleryImageCount()}")
+//        dataForMiniThumbnail(0) { data, id, created, location, path ->
+//            println("first item $data $id $created $location")
+//        }
+//    }
 
     private val columns = arrayOf(
             MediaStore.Images.Media.DATA,
@@ -90,13 +90,13 @@ class MainActivity: FlutterActivity() {
             MediaStore.Images.Media.LATITUDE,
             MediaStore.Images.Media.LONGITUDE)
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (requestCode == permissionCode
-                && grantResults.isNotEmpty()
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            checkGallery()
-        }
-    }
+//    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+//        if (requestCode == permissionCode
+//                && grantResults.isNotEmpty()
+//                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//            checkGallery()
+//        }
+//    }
 
     private fun getGalleryImageCount() : Int {
         val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI

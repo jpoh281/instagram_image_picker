@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -5,6 +7,7 @@ import 'package:instagramimagepicker/controller/gallery_controller.dart';
 import 'package:instagramimagepicker/test_page.dart';
 import 'package:instagramimagepicker/widget/profile_camera.dart';
 import 'package:instagramimagepicker/widget/profile_gallery.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ImagePickerPage extends StatefulWidget {
   @override

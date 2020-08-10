@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:instagramimagepicker/image_picker_page.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  var status = await Permission.camera.status;
+  if (status.isUndetermined) {
+    Map<Permission, PermissionStatus> statuses =
+        await [Permission.camera, Permission.storage].request();
+  } else if (await Permission.camera.isPermanentlyDenied) {
+    openAppSettings();
+  }
+
   runApp(MyApp());
 }
 
