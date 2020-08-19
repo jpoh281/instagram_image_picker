@@ -29,8 +29,7 @@ class GalleryController extends GetxController {
     Get.find<GalleryGridController>().onReBuild(images);
     Get.find<GalleryCropController>().image = images[0].originFile;
 
-    if (value.assetCount >
-        Get.find<GalleryController>().currentPage * 60) {
+    if (value.assetCount > Get.find<GalleryController>().currentPage * 60) {
       Get.find<GalleryController>().lastPage =
           Get.find<GalleryController>().currentPage + 1;
     } else {
