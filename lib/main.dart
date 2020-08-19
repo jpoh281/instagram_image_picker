@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:instagramimagepicker/image_picker_page.dart';
+import 'file:///C:/SourceCode/flutter/instagram_image_picker/lib/screens/image_picker_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
@@ -10,8 +10,9 @@ void main() async {
   if (status.isUndetermined) {
     Map<Permission, PermissionStatus> statuses =
         await [Permission.camera, Permission.storage].request();
-  } else if (await Permission.camera.isPermanentlyDenied) {
-    openAppSettings();
+  }
+  if (await Permission.camera.isPermanentlyDenied) {
+    await openAppSettings();
   }
 
   runApp(MyApp());
@@ -44,17 +45,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-//  Future<bool> _checkPermission() async {
-//    Map<Permission, PermissionStatus> status = {
-//      Permission.camera: await Permission.camera.status,
-//      Permission.storage: await Permission.storage.status,
-//    };
-//
-//    status.forEach((Permission, PermissionStatus) {
-//      if (!PermissionStatus.isGranted) Permission.request();
-//    });
-//  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Container(
                 height: 100,
                 width: 100,
-                child: Text("사진 고르기"),
+                child: Center(child: Text("Pick Image")),
                 color: Colors.blue,
               ))),
     );

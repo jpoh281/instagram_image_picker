@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 class ProfileCamera extends StatefulWidget {
   @override
@@ -34,6 +35,7 @@ class _ProfileCameraState extends State<ProfileCamera> {
 
   initCamera() async {
     cameras = await availableCameras();
+
     frontCameraIndex = cameras.indexWhere(
         (element) => element.lensDirection == CameraLensDirection.front);
     backCameraIndex = cameras.indexWhere(
@@ -43,7 +45,6 @@ class _ProfileCameraState extends State<ProfileCamera> {
     _cameraController = CameraController(
         cameras[nowCameraIndex], ResolutionPreset.max,
         enableAudio: false);
-
     await _cameraController.initialize();
   }
 
@@ -142,10 +143,17 @@ class _ProfileCameraState extends State<ProfileCamera> {
 
   takePicture(context) async {
     try {
+      // 카메라 로딩 기다리기
       await _initalizeControllerFuture;
+      // path 만들기
       final path = await createPath();
+      print(path);
+      // 해당 path로 촬영된 사진 생성
       await _cameraController.takePicture(path);
+      // File(path)를 갤러리
+      await PhotoManager.editor.saveImageWithPath(path);
       final File croppedFile = await crop(path);
+      await PhotoManager.editor.saveImageWithPath(croppedFile.path);
       final resizedFile = await FlutterNativeImage.compressImage(
           croppedFile.path,
           quality: 100,
@@ -158,7 +166,7 @@ class _ProfileCameraState extends State<ProfileCamera> {
   }
 
   createPath() async {
-    return join((await getTemporaryDirectory()).path, '${DateTime.now()}.png');
+    return join((await getTemporaryDirectory()).path, '${DateTime.now()}');
   }
 
   Future<File> crop(String filePath) async {
@@ -192,8 +200,8 @@ class _ProfileCameraState extends State<ProfileCamera> {
                     letterSpacing: 1.1),
               ),
               content: SizedBox(
-                width: 250,
-                height: 250,
+                width: 125,
+                height: 125,
                 child: Image.file(
                   file,
                 ),

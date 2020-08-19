@@ -103,17 +103,17 @@ class MainActivity: FlutterActivity() {
         // 1 Here, you open a cursor using the columns provided. The cursor is pointed at the media content in your external storage.
         val cursor = contentResolver.query(uri, columns, null, null, null);
         val count = cursor?.count ?: 0
-        cursor.close()
+        cursor?.close()
         // 2 You return the total number of items in that cursor. You are also handling the case of the cursor being null. In that case, the count will be zero.
         return count
     }
-    private fun imageUri(index: Int) : String {
+    private fun imageUri(index: Int) : String? {
         val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val orderBy = MediaStore.Images.Media.DATE_TAKEN
         val cursor = contentResolver.query(uri, columns, null, null, null)
-        cursor.move(index)
-        val path = cursor.getString(0)
-        cursor.close()
+        cursor?.move(index)
+        val path = cursor?.getString(0)
+        cursor?.close()
         return path;
     }
     private fun dataForMiniThumbnail(index: Int, completion: (ByteArray, String, Int, String, String)
@@ -149,6 +149,6 @@ class MainActivity: FlutterActivity() {
             // 6 Finally, hand all the data that you got to a completion function.
             completion(data, id, created, "$latitude, $longitude", path)
         }
-        cursor.close()
+        cursor?.close()
     }
 }
