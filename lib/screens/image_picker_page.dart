@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:instagramimagepicker/screens/widget/profile_camera.dart';
 import 'package:instagramimagepicker/screens/widget/profile_gallery.dart';
 
-
 class ImagePickerPage extends StatefulWidget {
   @override
   _ImagePickerPageState createState() => _ImagePickerPageState();

@@ -7,8 +7,8 @@ import 'package:instagramimagepicker/screens/controller/view_scroll_controller.d
 
 import 'package:photo_manager/photo_manager.dart';
 
-class GalleryCategoryController extends GetxController {
-  static GalleryCategoryController get to => Get.find();
+class GalleryController extends GetxController {
+  static GalleryController get to => Get.find();
   List<AssetPathEntity> albums;
   Future<void> initalizeControllerFuture;
   AssetPathEntity value;
@@ -18,26 +18,26 @@ class GalleryCategoryController extends GetxController {
   bool isEnd = false;
 
   Function onChanged = (value) async {
-    if (Get.find<GalleryCategoryController>().value == value) return;
+    if (Get.find<GalleryController>().value == value) return;
     await Get.find<ViewScrollController>().reset();
 
-    Get.find<GalleryCategoryController>().currentPage = 0;
-    Get.find<GalleryCategoryController>().isEnd = false;
-    Get.find<GalleryCategoryController>().value = value;
+    Get.find<GalleryController>().currentPage = 0;
+    Get.find<GalleryController>().isEnd = false;
+    Get.find<GalleryController>().value = value;
     List<AssetEntity> images =
         await value.getAssetListPaged(0, 60); // firstPage = 0, indexCount = 60;
     Get.find<GalleryGridController>().onReBuild(images);
     Get.find<GalleryCropController>().image = images[0].originFile;
 
     if (value.assetCount >
-        Get.find<GalleryCategoryController>().currentPage * 60) {
-      Get.find<GalleryCategoryController>().lastPage =
-          Get.find<GalleryCategoryController>().currentPage + 1;
+        Get.find<GalleryController>().currentPage * 60) {
+      Get.find<GalleryController>().lastPage =
+          Get.find<GalleryController>().currentPage + 1;
     } else {
-      Get.find<GalleryCategoryController>().isEnd = true;
+      Get.find<GalleryController>().isEnd = true;
     }
 
-    Get.find<GalleryCategoryController>().update();
+    Get.find<GalleryController>().update();
   };
 
   @override

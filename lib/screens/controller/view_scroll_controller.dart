@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:instagramimagepicker/screens/controller/gallery_category_controller.dart';
-
+import 'package:instagramimagepicker/screens/controller/gallery_controller.dart';
 
 class ViewScrollController extends GetxController {
   var scrollController = ScrollController(keepScrollOffset: false);
 
   void onScroll() {
-    if (Get.find<GalleryCategoryController>().isLoading) return;
-    if (Get.find<GalleryCategoryController>().isEnd) return;
+    if (Get.find<GalleryController>().isLoading) return;
+    if (Get.find<GalleryController>().isEnd) return;
 
     if (scrollController.offset >
         scrollController.position.maxScrollExtent * 0.9) {
       print(scrollController.position.maxScrollExtent * 0.9);
-      Get.find<GalleryCategoryController>().getMoreAlbumList();
+      Get.find<GalleryController>().getMoreAlbumList();
     }
   }
 

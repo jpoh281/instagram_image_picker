@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:get/get.dart';
-import 'package:instagramimagepicker/screens/controller/gallery_category_controller.dart';
+import 'package:instagramimagepicker/screens/controller/gallery_controller.dart';
 import 'package:instagramimagepicker/screens/controller/gallery_crop_controller.dart';
 import 'package:instagramimagepicker/screens/controller/gallery_grid_controller.dart';
 import 'package:instagramimagepicker/screens/controller/view_scroll_controller.dart';
@@ -12,8 +12,8 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:simple_image_crop/simple_image_crop.dart';
 
 class ProfileGallery extends StatelessWidget {
-  final GalleryCategoryController galleryCategoryController =
-      Get.put(GalleryCategoryController());
+  final GalleryController galleryCategoryController =
+      Get.put(GalleryController());
   final GalleryCropController galleryCropController =
       Get.put(GalleryCropController());
   final GalleryGridController galleryGridController =
@@ -33,7 +33,7 @@ class ProfileGallery extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    GetBuilder<GalleryCategoryController>(
+                    GetBuilder<GalleryController>(
                       builder: (controller) => DropdownButtonHideUnderline(
                           child: DropdownButton(
                         items: controller.getItems(),
